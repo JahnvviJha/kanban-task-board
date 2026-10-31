@@ -2,7 +2,7 @@
 
 A responsive, feature-rich **Kanban Task Board** built with modern React (Vite), HTML5 Drag-and-Drop, search & priority filters, and LocalStorage persistence.
 
-Designed with human-learner code clarity: well-structured components, thoughtful comments, clean separation of concerns, and accessible keyboard/mobile controls.
+Designed with a well-structured, categorized folder architecture, custom React hooks, clean separation of concerns, and human-learner code clarity.
 
 ---
 
@@ -10,19 +10,82 @@ Designed with human-learner code clarity: well-structured components, thoughtful
 
 | Desktop View (3-Column Kanban Grid) | Mobile View (Adaptive Navigation Tabs) |
 | :---: | :---: |
-| ![Desktop View](./desktop_view.png) | ![Mobile View](./mobile_view.png) |
+| ![Desktop View](./docs/screenshots/desktop_view.png) | ![Mobile View](./docs/screenshots/mobile_view.png) |
+
+---
+
+## 📁 Categorized Project Folder Structure
+
+```
+kanban-task-board/
+├── docs/
+│   └── screenshots/
+│       ├── desktop_view.png          # High-resolution desktop screenshot
+│       └── mobile_view.png           # Mobile responsive layout screenshot
+│
+├── tests/
+│   ├── test_logic.js                 # 23-test headless logic and state test suite
+│   └── browser_test.js               # Real browser integration & screenshot test
+│
+├── public/
+│   └── favicon.svg                   # Kanban SVG favicon
+│
+├── src/
+│   ├── components/                   # Categorized UI Components
+│   │   ├── common/                   # Shared UI building blocks
+│   │   │   ├── EmptyState.jsx        # Empty column & zero-search UX states
+│   │   │   └── PriorityBadge.jsx     # High / Medium / Low colored badge
+│   │   │
+│   │   ├── kanban/                   # Core Kanban Domain Components
+│   │   │   ├── KanbanBoard.jsx       # 3-column grid & mobile tabs layout
+│   │   │   ├── KanbanColumn.jsx      # Column container, drop target & count badge
+│   │   │   └── TaskCard.jsx          # Draggable card with quick-move buttons
+│   │   │
+│   │   ├── layout/                   # Global Page Layout Components
+│   │   │   ├── Header.jsx            # App header, title, and "New Task" button
+│   │   │   ├── MetricsBar.jsx        # Sprint completion progress bar & badges
+│   │   │   └── FilterBar.jsx         # Live search box, priority & status selects
+│   │   │
+│   │   └── modals/                   # Accessible Dialog Modals
+│   │       ├── TaskModal.jsx         # Add/Edit task modal with real-time validation
+│   │       └── DeleteConfirmModal.jsx# Safe deletion confirmation dialog
+│   │
+│   ├── constants/                    # Application Configuration
+│   │   └── kanbanConstants.js        # Column definitions, priorities, limits
+│   │
+│   ├── hooks/                        # Custom React Hooks (Business Logic)
+│   │   ├── useTasks.js               # Task state, CRUD, metrics & LocalStorage sync
+│   │   └── useKanbanFilters.js       # Live search & multi-parameter filtering
+│   │
+│   ├── utils/                        # Pure Helper Functions
+│   │   ├── dateHelpers.js            # Due date formatting & overdue calculations
+│   │   └── storage.js                # Safe LocalStorage serialization & error handling
+│   │
+│   ├── data/
+│   │   └── initialTasks.js           # Starter sprint dataset
+│   │
+│   ├── App.jsx                       # Main orchestrator component
+│   ├── index.css                     # Responsive CSS design tokens & animations
+│   └── main.jsx                      # React 19 entry point
+│
+├── index.html                        # HTML5 document entry
+├── vite.config.js                    # Vite bundler configuration
+├── package.json                      # NPM dependencies and scripts
+├── LICENSE                           # MIT License
+└── README.md                         # Project documentation
+```
 
 ---
 
 ## 🚀 Live Features & User Experience
 
 ### 1. 3-Column Task Progression
-* **Todo:** Tasks ready to be started.
+* **Todo:** Tasks waiting to be picked up.
 * **In Progress:** Active work items currently being executed.
-* **Completed:** Done tasks.
+* **Completed:** Finished tasks.
 
 ### 2. Dual Status Movement (Desktop & Mobile Friendly)
-* **HTML5 Drag and Drop:** Drag any task card and drop it onto any column. Columns dynamically highlight (`column-drag-over`) as drop targets.
+* **HTML5 Drag and Drop:** Drag any task card and drop it onto any column. Columns dynamically highlight (`column-drag-over`) as active drop targets.
 * **Quick-Move Controls:** Every card has directional arrows (`←` / `→`) and a status dropdown. This ensures touch users on mobile and keyboard navigation users can move tasks effortlessly without relying on drag-and-drop.
 
 ### 3. Add & Edit Modal with Real-Time Validation
@@ -30,7 +93,7 @@ Designed with human-learner code clarity: well-structured components, thoughtful
   * **Title:** Required, 2–80 characters.
   * **Status:** Todo, In Progress, Completed.
   * **Priority:** High, Medium, Low.
-  * **Due Date:** Date selector with automatic today/tomorrow/relative labels.
+  * **Due Date:** Date selector with automatic relative labels (`Due Today`, `Due Tomorrow`, etc.).
   * **Description:** Optional multi-line notes (up to 500 characters).
 * Inline validation with clear error messages.
 * Accessible: Autofocuses title input upon opening, and closes on `Esc` key or backdrop click.
@@ -57,54 +120,23 @@ Designed with human-learner code clarity: well-structured components, thoughtful
 * Includes a "Reset Demo Data" button to easily restore starter tasks.
 
 ### 9. Fully Responsive Layout
-* **Desktop ($> 900px$):** 3-column side-by-side grid.
-* **Mobile / Tablet ($\le 900px$):** Adaptive column switcher tabs (`All Columns`, `Todo (3)`, `In Progress (2)`, `Completed (1)`) preventing horizontal scrolling.
+* **Desktop ($> 840px$):** 3-column side-by-side grid.
+* **Mobile / Tablet ($\le 840px$):** Adaptive column switcher tabs (`All Columns`, `Todo (3)`, `In Progress (2)`, `Completed (1)`) preventing horizontal scrolling.
 
 ---
 
-## 📁 Component Structure & Architecture
+## 🧠 Key Architecture & Clean Code Decisions
 
-```
-src/
-├── components/
-│   ├── Header.jsx              # Branding, sprint title, "New Task" and "Reset" buttons
-│   ├── MetricsBar.jsx          # Completion progress bar & metric counter badges
-│   ├── FilterBar.jsx           # Keyword search input, priority and status filter selects
-│   ├── KanbanBoard.jsx         # Board container with mobile navigation tabs
-│   ├── KanbanColumn.jsx        # Column drop target, header badge, and task cards list
-│   ├── TaskCard.jsx            # Card with priority pill, due date badge, DnD, and move buttons
-│   ├── TaskModal.jsx           # Create/Edit task modal with form validation
-│   ├── DeleteConfirmModal.jsx  # Deletion confirmation dialog
-│   └── EmptyState.jsx          # UX empty states (empty column vs zero search results)
-├── data/
-│   └── initialTasks.js         # Realistic starter mock tasks
-├── utils/
-│   ├── dateHelpers.js          # Due date formatting, overdue checks, and date helpers
-│   └── storage.js              # Safe LocalStorage serialization and recovery
-├── App.jsx                     # Core application state, filtering, and DnD handlers
-├── index.css                   # Custom responsive CSS design tokens & animations
-└── main.jsx                    # React 19 entry point
-```
-
----
-
-## 🧠 Key State Management Decisions
-
-1. **Lazy State Initializer for LocalStorage:**
-   ```javascript
-   const [tasks, setTasks] = useState(() => loadTasksFromStorage(initialTasks));
-   ```
-   *Why:* Passing a function to `useState` ensures `localStorage.getItem()` only runs during the initial mount, preventing blocking disk reads on every subsequent re-render.
-2. **`useMemo` for Derived Filtering & Metrics:**
-   ```javascript
-   const filteredTasks = useMemo(() => { ... }, [tasks, searchQuery, priorityFilter, statusFilter]);
-   ```
-   *Why:* Filtering and counting are derived purely from existing state. Using `useMemo` avoids redundant filtering calculations on modal open/close renders.
-3. **Optimistic LocalStorage Sync:**
-   ```javascript
-   useEffect(() => { saveTasksToStorage(tasks); }, [tasks]);
-   ```
-   *Why:* Centralizes storage writes into a single clean effect rather than scattering `localStorage.setItem` inside every handler.
+1. **Separation of Concerns via Custom Hooks (`useTasks`, `useKanbanFilters`):**
+   * Keeping business logic and state transitions out of the main `App.jsx` makes components simple, pure, and easy to maintain.
+2. **Categorized Component Structure (`components/layout/`, `kanban/`, `modals/`, `common/`):**
+   * Organizing components by domain responsibility rather than having a messy flat directory.
+3. **Centralized Configuration (`constants/kanbanConstants.js`):**
+   * Columns, priorities, and validation bounds live in one single source of truth.
+4. **`useMemo` for Derived Filtering & Metrics:**
+   * Prevents unnecessary recalculations on unrelated component renders.
+5. **Optimistic LocalStorage Sync:**
+   * Centralizes storage writes into a single clean effect rather than scattering `localStorage.setItem` inside every handler.
 
 ---
 
@@ -130,13 +162,13 @@ npm run preview
 
 ### 1. Headless Logic & State Verification Suite (23 Tests)
 ```bash
-node test_logic.js
+npm test
 ```
 *Verifies: Initial schema, input validation, CRUD operations, state transitions, search and priority filtering, and overdue date calculations.*
 
 ### 2. Real Browser Integration & Screenshot Test
 ```bash
-node browser_test.js
+npm run test:browser
 ```
 *Launches headless Chrome/Edge, verifies column and card rendering, interacts with search, and takes high-resolution desktop and mobile screenshots.*
 

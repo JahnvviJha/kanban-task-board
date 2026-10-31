@@ -1,9 +1,10 @@
 import React from 'react';
 import { Search, X, Filter } from 'lucide-react';
+import { PRIORITIES } from '../../constants/kanbanConstants';
 
 /**
- * FilterBar component.
- * Allows users to search tasks by keyword and filter by priority or column status.
+ * Layout Component: FilterBar
+ * Multi-parameter filtering toolbar: search box, priority filter, status filter.
  */
 export default function FilterBar({
   searchQuery,
@@ -14,10 +15,9 @@ export default function FilterBar({
   onStatusChange,
   onResetFilters,
   totalMatching,
-  totalTasks
+  totalTasks,
+  hasActiveFilters
 }) {
-  const hasActiveFilters = searchQuery.trim() !== '' || priorityFilter !== 'All' || statusFilter !== 'All';
-
   return (
     <div className="filter-bar">
       {/* 1. Search Box with clear icon */}
@@ -55,9 +55,9 @@ export default function FilterBar({
           onChange={(e) => onPriorityChange(e.target.value)}
         >
           <option value="All">All Priorities</option>
-          <option value="High">High Priority</option>
-          <option value="Medium">Medium Priority</option>
-          <option value="Low">Low Priority</option>
+          {PRIORITIES.map((p) => (
+            <option key={p} value={p}>{p} Priority</option>
+          ))}
         </select>
       </div>
 

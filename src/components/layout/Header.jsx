@@ -2,8 +2,8 @@ import React from 'react';
 import { Kanban, Plus, RotateCcw } from 'lucide-react';
 
 /**
- * Header component for the Kanban board.
- * Shows the branding, purpose of the board, and primary action buttons.
+ * Layout Component: Header
+ * Displays the Kanban branding, sprint title, and primary actions.
  */
 export default function Header({ onOpenNewTaskModal, onResetDemoData }) {
   return (

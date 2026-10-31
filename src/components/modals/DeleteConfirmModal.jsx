@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 
 /**
- * DeleteConfirmModal component.
- * Confirms before permanently deleting a task, avoiding accidental clicks.
+ * Modal Component: DeleteConfirmModal
+ * Confirmation dialog before deleting a task permanently.
  */
 export default function DeleteConfirmModal({
   isOpen,

@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import KanbanColumn from './KanbanColumn';
-import EmptyState from './EmptyState';
-
-const COLUMNS = [
-  { id: 'Todo', title: 'Todo' },
-  { id: 'In Progress', title: 'In Progress' },
-  { id: 'Completed', title: 'Completed' }
-];
+import EmptyState from '../common/EmptyState';
+import { COLUMNS } from '../../constants/kanbanConstants';
 
 /**
- * KanbanBoard component.
- * Lays out the columns and provides responsive tabs on mobile devices.
+ * Kanban Component: KanbanBoard
+ * Main board view with desktop 3-column grid and mobile-responsive tabs navigation.
  */
 export default function KanbanBoard({
   filteredTasks,
@@ -27,7 +22,7 @@ export default function KanbanBoard({
   // Mobile active tab view ('All', 'Todo', 'In Progress', 'Completed')
   const [mobileTab, setMobileTab] = useState('All');
 
-  // If user searched/filtered and nothing matched at all across all 3 columns
+  // If search/filter returns zero tasks across all columns
   if (totalMatching === 0) {
     return (
       <EmptyState
@@ -39,7 +34,7 @@ export default function KanbanBoard({
 
   return (
     <div className="kanban-board-wrapper">
-      {/* Mobile Column Navigation Tabs (visible on mobile screens <= 768px) */}
+      {/* Mobile Column Navigation Tabs (visible on mobile screens <= 840px) */}
       <div className="mobile-tabs-bar" role="tablist" aria-label="Select column view">
         <button
           type="button"
@@ -66,7 +61,6 @@ export default function KanbanBoard({
       {/* Main Kanban Grid */}
       <div className="kanban-grid">
         {COLUMNS.map((col) => {
-          // If on mobile and a specific tab is selected, hide other columns
           if (mobileTab !== 'All' && mobileTab !== col.id) {
             return null;
           }
@@ -78,6 +72,7 @@ export default function KanbanBoard({
               key={col.id}
               status={col.id}
               title={col.title}
+              colorTheme={col.colorTheme}
               tasks={columnTasks}
               onOpenNewTaskModal={onOpenNewTaskModal}
               onEditTask={onEditTask}

@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { Calendar, AlertCircle, Edit2, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { isTaskOverdue, formatDueDateLabel } from '../utils/dateHelpers';
+import PriorityBadge from '../common/PriorityBadge';
+import { isTaskOverdue, formatDueDateLabel } from '../../utils/dateHelpers';
+import { COLUMNS } from '../../constants/kanbanConstants';
 
 /**
- * TaskCard component.
- * Represents an individual task card inside a Kanban column.
- *
- * Supports:
- * 1. HTML5 Drag and drop (grab and move to another column)
- * 2. Quick move arrow buttons (for quick navigation without dragging)
- * 3. Priority color pills (High, Medium, Low)
- * 4. Due date alert badges (red warning if past due and incomplete)
- * 5. Edit and delete triggers
+ * Kanban Component: TaskCard
+ * Individual draggable task card with quick-move controls and action triggers.
  */
 export default function TaskCard({
   task,
@@ -26,8 +21,8 @@ export default function TaskCard({
   const isOverdue = isTaskOverdue(task.dueDate, task.status);
   const formattedDueDate = formatDueDateLabel(task.dueDate);
 
-  // Status progression map for simple next/prev moves
-  const statusFlow = ['Todo', 'In Progress', 'Completed'];
+  // Status progression map for directional move buttons
+  const statusFlow = COLUMNS.map((col) => col.id);
   const currentIndex = statusFlow.indexOf(task.status);
   const prevStatus = currentIndex > 0 ? statusFlow[currentIndex - 1] : null;
   const nextStatus = currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1] : null;
@@ -56,9 +51,7 @@ export default function TaskCard({
     >
       {/* 1. Card Top Bar: Priority Badge & Action Buttons */}
       <div className="card-top-bar">
-        <span className={`priority-pill priority-${task.priority.toLowerCase()}`}>
-          {task.priority} Priority
-        </span>
+        <PriorityBadge priority={task.priority} />
 
         <div className="card-top-actions">
           <button
@@ -130,16 +123,16 @@ export default function TaskCard({
           )}
         </div>
 
-        {/* Direct status selector dropdown for full flexibility */}
+        {/* Direct status selector dropdown for full mobile flexibility */}
         <select
           className="card-status-select"
           value={task.status}
           onChange={(e) => onMoveStatus(task.id, e.target.value)}
           aria-label="Change status"
         >
-          <option value="Todo">Todo</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
+          {COLUMNS.map((col) => (
+            <option key={col.id} value={col.id}>{col.title}</option>
+          ))}
         </select>
       </div>
     </div>

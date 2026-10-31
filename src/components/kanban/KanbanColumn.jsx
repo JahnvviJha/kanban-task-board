@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import TaskCard from './TaskCard';
-import EmptyState from './EmptyState';
+import EmptyState from '../common/EmptyState';
 
 /**
- * KanbanColumn component.
- * Acts as the container and drop target for one of the three statuses:
- * - Todo
- * - In Progress
- * - Completed
+ * Kanban Component: KanbanColumn
+ * Container and drop-target for one of the sprint statuses.
  */
 export default function KanbanColumn({
   status,
   title,
+  colorTheme = '',
   tasks,
   onOpenNewTaskModal,
   onEditTask,
@@ -24,7 +22,6 @@ export default function KanbanColumn({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // When a card is dragged over this column, prevent default to allow drop
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -34,7 +31,6 @@ export default function KanbanColumn({
   };
 
   const handleDragLeave = (e) => {
-    // Check if the drag is actually leaving the column container
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setIsDragOver(false);
     }
@@ -48,22 +44,9 @@ export default function KanbanColumn({
     }
   };
 
-  const getStatusColorClass = () => {
-    switch (status) {
-      case 'Todo':
-        return 'col-theme-todo';
-      case 'In Progress':
-        return 'col-theme-progress';
-      case 'Completed':
-        return 'col-theme-completed';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div
-      className={`kanban-column ${getStatusColorClass()} ${isDragOver ? 'column-drag-over' : ''}`}
+      className={`kanban-column ${colorTheme} ${isDragOver ? 'column-drag-over' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

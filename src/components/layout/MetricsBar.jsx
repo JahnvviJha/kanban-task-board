@@ -2,19 +2,18 @@ import React from 'react';
 import { CheckCircle2, Clock, ListTodo, AlertTriangle } from 'lucide-react';
 
 /**
- * MetricsBar component.
- * Gives the user a quick statistical overview of sprint progress:
- * - Total tasks & completion percentage
- * - Count of Todo, In Progress, Completed
- * - Alert badge if any tasks are overdue!
+ * Layout Component: MetricsBar
+ * Displays sprint progress percentage and task category badges.
  */
-export default function MetricsBar({ tasks, overdueCount }) {
-  const total = tasks.length;
-  const todoCount = tasks.filter((t) => t.status === 'Todo').length;
-  const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
-  const completedCount = tasks.filter((t) => t.status === 'Completed').length;
-
-  const percentComplete = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+export default function MetricsBar({ metrics }) {
+  const {
+    total = 0,
+    todoCount = 0,
+    inProgressCount = 0,
+    completedCount = 0,
+    overdueCount = 0,
+    percentComplete = 0
+  } = metrics || {};
 
   return (
     <section className="metrics-card" aria-label="Task progress summary">

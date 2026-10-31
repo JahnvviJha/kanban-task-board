@@ -1,10 +1,12 @@
 /**
  * Automated Logic & State Verification Test Suite for Kanban Task Board
- * Run using: node test_logic.js
+ * Location: tests/test_logic.js
+ * Run using: npm test
  */
 
-import { initialTasks } from './src/data/initialTasks.js';
-import { isTaskOverdue, formatDueDateLabel, getTodayString } from './src/utils/dateHelpers.js';
+import { initialTasks } from '../src/data/initialTasks.js';
+import { isTaskOverdue, formatDueDateLabel, getTodayString } from '../src/utils/dateHelpers.js';
+import { VALIDATION_LIMITS, COLUMNS, PRIORITIES } from '../src/constants/kanbanConstants.js';
 
 let passed = 0;
 let failed = 0;
@@ -21,13 +23,13 @@ function assert(condition, message) {
 
 console.log('=== Running Kanban Task Board Logic Tests ===\n');
 
-// 1. Initial State Tests
-console.log('Test Group 1: Initial Task Data Structure');
+// 1. Initial State & Constants Tests
+console.log('Test Group 1: Constants & Initial Task Data Structure');
 assert(Array.isArray(initialTasks), 'initialTasks is an array');
 assert(initialTasks.length >= 5, `Initial dataset has at least 5 starter tasks (has ${initialTasks.length})`);
 
-const validStatuses = ['Todo', 'In Progress', 'Completed'];
-const validPriorities = ['High', 'Medium', 'Low'];
+const validStatuses = COLUMNS.map(c => c.id);
+const validPriorities = PRIORITIES;
 
 const allStatusesValid = initialTasks.every(t => validStatuses.includes(t.status));
 assert(allStatusesValid, 'All starter tasks have valid status (Todo, In Progress, or Completed)');
@@ -42,12 +44,12 @@ function validateTaskInput(title, description) {
   const trimmed = (title || '').trim();
   if (!trimmed) {
     errors.title = 'Title is required';
-  } else if (trimmed.length < 2) {
+  } else if (trimmed.length < VALIDATION_LIMITS.MIN_TITLE_LENGTH) {
     errors.title = 'Title too short';
-  } else if (trimmed.length > 80) {
+  } else if (trimmed.length > VALIDATION_LIMITS.MAX_TITLE_LENGTH) {
     errors.title = 'Title too long';
   }
-  if (description && description.length > 500) {
+  if (description && description.length > VALIDATION_LIMITS.MAX_DESCRIPTION_LENGTH) {
     errors.description = 'Description too long';
   }
   return { isValid: Object.keys(errors).length === 0, errors };
@@ -105,7 +107,7 @@ function filterTasks(taskList, query, priority, status) {
     const matchesSearch =
       q === '' ||
       task.title.toLowerCase().includes(q) ||
-      (task.description && task.description.toLowerCase().includes(q));
+      (task.description && task.description.toLowerCase().includes(query));
 
     const matchesPriority = priority === 'All' || task.priority === priority;
     const matchesStatus = status === 'All' || task.status === status;

@@ -22,7 +22,7 @@ function findChromePath() {
 }
 
 const CHROME_PATH = findChromePath();
-const PORT = 5188;
+const PORT = 5192;
 const APP_URL = `http://localhost:${PORT}`;
 
 async function runBrowserTests() {
@@ -84,9 +84,9 @@ async function runBrowserTests() {
     await new Promise((r) => setTimeout(r, 400));
 
     // Capture Desktop Screenshot
-    const desktopScreenshotPath = path.resolve('E:/Int2/section-4-machine-coding/desktop_view.png');
-    await page.screenshot({ path: desktopScreenshotPath, fullPage: true });
-    console.log(`  📸 Desktop view screenshot saved: ${desktopScreenshotPath}`);
+    const desktopPath = path.resolve('docs/screenshots/desktop_view.png');
+    await page.screenshot({ path: desktopPath, fullPage: true });
+    console.log(`  📸 Desktop view screenshot saved: ${desktopPath}`);
 
     // 3. Mobile Test & Screenshot (390x844 - iPhone 14 size)
     await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
@@ -99,9 +99,9 @@ async function runBrowserTests() {
     });
     console.log(`  ✅ Mobile tabs bar visible: ${mobileTabsVisible}`);
 
-    const mobileScreenshotPath = path.resolve('E:/Int2/section-4-machine-coding/mobile_view.png');
-    await page.screenshot({ path: mobileScreenshotPath, fullPage: true });
-    console.log(`  📸 Mobile view screenshot saved: ${mobileScreenshotPath}`);
+    const mobilePath = path.resolve('docs/screenshots/mobile_view.png');
+    await page.screenshot({ path: mobilePath, fullPage: true });
+    console.log(`  📸 Mobile view screenshot saved: ${mobilePath}`);
 
     console.log('\n=============================================');
     console.log('🎉 ALL BROWSER INTEGRATION TESTS PASSED!');

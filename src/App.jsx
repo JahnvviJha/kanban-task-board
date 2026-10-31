@@ -1,33 +1,52 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Header from './components/Header';
-import MetricsBar from './components/MetricsBar';
-import FilterBar from './components/FilterBar';
-import KanbanBoard from './components/KanbanBoard';
-import TaskModal from './components/TaskModal';
-import DeleteConfirmModal from './components/DeleteConfirmModal';
-import { initialTasks } from './data/initialTasks';
-import { loadTasksFromStorage, saveTasksToStorage } from './utils/storage';
-import { isTaskOverdue } from './utils/dateHelpers';
+import React, { useState } from 'react';
+// 1. Custom Hooks (Separation of Concerns: Data & Filters)
+import { useTasks } from './hooks/useTasks';
+import { useKanbanFilters } from './hooks/useKanbanFilters';
 
+// 2. Categorized Components
+import Header from './components/layout/Header';
+import MetricsBar from './components/layout/MetricsBar';
+import FilterBar from './components/layout/FilterBar';
+import KanbanBoard from './components/kanban/KanbanBoard';
+import TaskModal from './components/modals/TaskModal';
+import DeleteConfirmModal from './components/modals/DeleteConfirmModal';
+
+/**
+ * Main Application Component: App
+ *
+ * Architecture Highlights:
+ * - Business logic and data storage are encapsulated inside custom hooks (`useTasks`, `useKanbanFilters`).
+ * - UI components are organized into categorized domain folders (`layout/`, `kanban/`, `modals/`, `common/`).
+ * - App.jsx acts as a clean orchestrator, handling modal states and drag-and-drop events.
+ */
 export default function App() {
   // -------------------------------------------------------------
-  // 1. Task State (Initialized from LocalStorage with fallback)
+  // 1. Data & State Management via Custom Hooks
   // -------------------------------------------------------------
-  // We use a lazy initializer function inside useState so that
-  // localStorage is read only once when the page initially mounts!
-  const [tasks, setTasks] = useState(() => {
-    return loadTasksFromStorage(initialTasks);
-  });
+  const {
+    tasks,
+    metrics,
+    addTask,
+    updateTask,
+    deleteTask,
+    moveTaskStatus,
+    resetTasksToDemo
+  } = useTasks();
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    priorityFilter,
+    setPriorityFilter,
+    statusFilter,
+    setStatusFilter,
+    filteredTasks,
+    resetFilters,
+    hasActiveFilters
+  } = useKanbanFilters(tasks);
 
   // -------------------------------------------------------------
-  // 2. Search & Filter State
-  // -------------------------------------------------------------
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All');
-
-  // -------------------------------------------------------------
-  // 3. Modal Dialog States
+  // 2. Modal Dialog States
   // -------------------------------------------------------------
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
@@ -40,107 +59,43 @@ export default function App() {
   const [draggedTaskId, setDraggedTaskId] = useState(null);
 
   // -------------------------------------------------------------
-  // 4. Persistence Effect
+  // 3. Modal Handlers
   // -------------------------------------------------------------
-  // Whenever the `tasks` state changes (add, edit, delete, status move),
-  // automatically synchronize the array into LocalStorage.
-  useEffect(() => {
-    saveTasksToStorage(tasks);
-  }, [tasks]);
-
-  // -------------------------------------------------------------
-  // 5. Computed Derived Data (useMemo)
-  // -------------------------------------------------------------
-  // We compute filtered tasks using useMemo so we don't recalculate
-  // filtering on unrelated component renders.
-  const filteredTasks = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    return tasks.filter((task) => {
-      // 1. Search Query filter (matches title OR description)
-      const matchesSearch =
-        query === '' ||
-        task.title.toLowerCase().includes(query) ||
-        (task.description && task.description.toLowerCase().includes(query));
-
-      // 2. Priority filter ('All' matches everything)
-      const matchesPriority =
-        priorityFilter === 'All' || task.priority === priorityFilter;
-
-      // 3. Status filter ('All' matches everything)
-      const matchesStatus =
-        statusFilter === 'All' || task.status === statusFilter;
-
-      return matchesSearch && matchesPriority && matchesStatus;
-    });
-  }, [tasks, searchQuery, priorityFilter, statusFilter]);
-
-  // Count overdue incomplete tasks
-  const overdueCount = useMemo(() => {
-    return tasks.filter((t) => isTaskOverdue(t.dueDate, t.status)).length;
-  }, [tasks]);
-
-  // -------------------------------------------------------------
-  // 6. Task Management Handlers (CRUD)
-  // -------------------------------------------------------------
-
-  // Open modal to create a new task in a specific column
   const handleOpenNewTaskModal = (status = 'Todo') => {
     setTaskToEdit(null);
     setDefaultModalStatus(status);
     setIsTaskModalOpen(true);
   };
 
-  // Open modal to edit an existing task
   const handleOpenEditTaskModal = (task) => {
     setTaskToEdit(task);
     setIsTaskModalOpen(true);
   };
 
-  // Save task (handles both Create and Update)
   const handleSaveTask = (formData) => {
     if (taskToEdit) {
-      // Updating an existing task
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskToEdit.id ? { ...t, ...formData } : t))
-      );
+      updateTask(taskToEdit.id, formData);
     } else {
-      // Creating a brand new task
-      const newTask = {
-        id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        ...formData,
-        createdAt: new Date().toISOString()
-      };
-      setTasks((prev) => [newTask, ...prev]);
+      addTask(formData);
     }
   };
 
-  // Open delete confirmation modal
   const handleOpenDeleteModal = (task) => {
     setTaskToDelete(task);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm permanent deletion of a task
   const handleConfirmDelete = (taskId) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    deleteTask(taskId);
     setIsDeleteModalOpen(false);
     setTaskToDelete(null);
   };
 
-  // Move status directly (via arrows or select dropdown)
-  const handleMoveStatus = useCallback((taskId, newStatus) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
-  }, []);
-
   // -------------------------------------------------------------
-  // 7. Drag and Drop Handlers (HTML5 DnD API)
+  // 4. Drag and Drop Handlers (HTML5 DnD API)
   // -------------------------------------------------------------
   const handleDragStartTask = (e, taskId) => {
     setDraggedTaskId(taskId);
-    // Setting data in dataTransfer is required for cross-browser DnD support
     e.dataTransfer.setData('text/plain', taskId);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -154,47 +109,36 @@ export default function App() {
     const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
 
     if (taskId) {
-      handleMoveStatus(taskId, targetStatus);
+      moveTaskStatus(taskId, targetStatus);
     }
     setDraggedTaskId(null);
   };
 
   // -------------------------------------------------------------
-  // 8. Reset Helpers
+  // 5. Reset Helpers
   // -------------------------------------------------------------
   const handleResetDemoData = () => {
     if (window.confirm('Reset all tasks back to default demo items?')) {
-      setTasks(initialTasks);
-      setSearchQuery('');
-      setPriorityFilter('All');
-      setStatusFilter('All');
+      resetTasksToDemo();
+      resetFilters();
     }
   };
 
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setPriorityFilter('All');
-    setStatusFilter('All');
-  };
-
   // -------------------------------------------------------------
-  // 9. Render Application Layout
+  // 6. View Rendering
   // -------------------------------------------------------------
   return (
     <div className="app-container">
-      {/* App Header with branding & primary actions */}
+      {/* App Header with branding & primary action buttons */}
       <Header
         onOpenNewTaskModal={handleOpenNewTaskModal}
         onResetDemoData={handleResetDemoData}
       />
 
-      {/* Metrics Bar with sprint progress bar & status counters */}
-      <MetricsBar
-        tasks={tasks}
-        overdueCount={overdueCount}
-      />
+      {/* Metrics Bar with sprint progress bar & counters */}
+      <MetricsBar metrics={metrics} />
 
-      {/* Toolbar: Search input, priority filter, column filter */}
+      {/* Filter Bar with search box and priority/status dropdowns */}
       <FilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -202,9 +146,10 @@ export default function App() {
         onPriorityChange={setPriorityFilter}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
-        onResetFilters={handleResetFilters}
+        onResetFilters={resetFilters}
         totalMatching={filteredTasks.length}
         totalTasks={tasks.length}
+        hasActiveFilters={hasActiveFilters}
       />
 
       {/* Kanban Board Grid (Todo / In Progress / Completed) */}
@@ -214,11 +159,11 @@ export default function App() {
           onOpenNewTaskModal={handleOpenNewTaskModal}
           onEditTask={handleOpenEditTaskModal}
           onDeleteTask={handleOpenDeleteModal}
-          onMoveStatus={handleMoveStatus}
+          onMoveStatus={moveTaskStatus}
           onDragStartTask={handleDragStartTask}
           onDragEndTask={handleDragEndTask}
           onDropTask={handleDropTask}
-          onResetFilters={handleResetFilters}
+          onResetFilters={resetFilters}
           totalMatching={filteredTasks.length}
         />
       </main>

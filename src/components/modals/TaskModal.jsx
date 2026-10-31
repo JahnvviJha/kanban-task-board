@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check } from 'lucide-react';
-import { getTodayString } from '../utils/dateHelpers';
+import { getTodayString } from '../../utils/dateHelpers';
+import { VALIDATION_LIMITS, PRIORITIES, COLUMNS } from '../../constants/kanbanConstants';
 
 /**
- * TaskModal component.
- * Provides a clean, accessible dialog to create or edit a task with validation.
+ * Modal Component: TaskModal
+ * Add / Edit task modal dialog with robust form validation and keyboard navigation.
  */
 export default function TaskModal({
   isOpen,
@@ -51,7 +52,6 @@ export default function TaskModal({
   // Handle ESC key and focus management
   useEffect(() => {
     if (isOpen) {
-      // Focus the title input when modal opens
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 50);
@@ -75,14 +75,14 @@ export default function TaskModal({
 
     if (!trimmedTitle) {
       errs.title = 'Task title is required.';
-    } else if (trimmedTitle.length < 2) {
-      errs.title = 'Title must be at least 2 characters long.';
-    } else if (trimmedTitle.length > 80) {
-      errs.title = 'Title cannot exceed 80 characters.';
+    } else if (trimmedTitle.length < VALIDATION_LIMITS.MIN_TITLE_LENGTH) {
+      errs.title = `Title must be at least ${VALIDATION_LIMITS.MIN_TITLE_LENGTH} characters long.`;
+    } else if (trimmedTitle.length > VALIDATION_LIMITS.MAX_TITLE_LENGTH) {
+      errs.title = `Title cannot exceed ${VALIDATION_LIMITS.MAX_TITLE_LENGTH} characters.`;
     }
 
-    if (formData.description && formData.description.length > 500) {
-      errs.description = 'Description cannot exceed 500 characters.';
+    if (formData.description && formData.description.length > VALIDATION_LIMITS.MAX_DESCRIPTION_LENGTH) {
+      errs.description = `Description cannot exceed ${VALIDATION_LIMITS.MAX_DESCRIPTION_LENGTH} characters.`;
     }
 
     setErrors(errs);
@@ -105,7 +105,7 @@ export default function TaskModal({
     <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
         className="modal-card"
-        onClick={(e) => e.stopPropagation()} /* Prevents closing when clicking inside */
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="modal-header">
@@ -140,7 +140,7 @@ export default function TaskModal({
                 setFormData({ ...formData, title: e.target.value });
                 if (errors.title) setErrors({ ...errors, title: null });
               }}
-              maxLength={85}
+              maxLength={VALIDATION_LIMITS.MAX_TITLE_LENGTH + 5}
               required
             />
             {errors.title && <span className="field-error-msg">{errors.title}</span>}
@@ -158,9 +158,9 @@ export default function TaskModal({
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               >
-                <option value="Todo">Todo</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
+                {COLUMNS.map((col) => (
+                  <option key={col.id} value={col.id}>{col.title}</option>
+                ))}
               </select>
             </div>
 
@@ -174,9 +174,9 @@ export default function TaskModal({
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
               >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -207,13 +207,13 @@ export default function TaskModal({
               placeholder="Add key notes, steps, or acceptance criteria..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              maxLength={500}
+              maxLength={VALIDATION_LIMITS.MAX_DESCRIPTION_LENGTH}
             />
             {errors.description && (
               <span className="field-error-msg">{errors.description}</span>
             )}
             <span className="form-help-text">
-              {formData.description.length}/500 characters
+              {formData.description.length}/{VALIDATION_LIMITS.MAX_DESCRIPTION_LENGTH} characters
             </span>
           </div>
 
